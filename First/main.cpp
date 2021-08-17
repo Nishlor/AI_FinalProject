@@ -20,6 +20,7 @@ using namespace std;
 const int NUM_ROOMS = 12;
 const int NUM_TEAM_PLAYERS = 5; 
 const int STORE_IN_ROOM = 2;									
+int numOfPlayers = 10;			/////
 
 int maze[MSZ][MSZ] = { 0 };
 double security_map [MSZ][MSZ] = { 0 };
@@ -317,6 +318,20 @@ void DoAction(int runIndex)		/////
 		while (runPlayer)
 		{
 		AStarIteration(runIndex,teamNum,targetTeam);
+		}
+		double angle = calcAngleBetweenCells(allPlayers[runIndex].getRow(), allPlayers[runIndex].getCol(), allPlayers[enemyID].getRow(), allPlayers[enemyID].getCol());
+		if (canAttack(allPlayers[runIndex], allPlayers[enemyID]))
+		{
+			allPlayers[runIndex].attack(allPlayers, enemyID, angle);
+			if (allPlayers[enemyID].getHealthPoints() == 0)									// if the attacked player is dead
+			{
+				maze[allPlayers[enemyID].getRow()][allPlayers[enemyID].getCol()] = SPACE;		// erase player image
+				for (int i = enemyID; i < (2*NUM_TEAM_PLAYERS - 1); i++)						// delete from array
+				{
+					allPlayers[i] = allPlayers[i + 1];
+				}
+				numOfPlayers--;
+			}
 		}
 	}
 }
