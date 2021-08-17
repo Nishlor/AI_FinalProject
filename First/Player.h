@@ -43,6 +43,11 @@ public :
 	int getId() { return id; };
 	int getTeamNum() { return teamNum; };
 	int getHealthPoints() { return healthPoints; };
+	
+	double distaneToEnemy(Player* allPlayers, int enemy);		/////
+	void attack(Player* allPlayers, int index,double angle);	/////
+	bool isAHit(int kindOfShot,Player player);			/////																	
+	void isHurt(int kindOfShot,int distOfShot);			/////
 
 };
 
