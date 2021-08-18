@@ -261,27 +261,17 @@ void CheckNeighborTarget(Cell* pcurrent, int row, int col , int targetTeam ,int 
 	}
 }
 
-bool playersInSameRoom(Player p1, Player p2)	/////
-{
-	for (int i = 0; i < NUM_ROOMS; i++)
-	{
-		if ((p1.getRow() > (rooms[i].GetCenterRow() - rooms[i].GetHeight()) / 2) && (p1.getRow() < (rooms[i].GetCenterRow()+rooms[i].GetHeight())/2))
-			&&(p1.getCol() > (rooms[i].GetCenterCol() - rooms[i].GetWidth()) / 2) &&(p1.getCol() < (rooms[i].GetCenterCol()+rooms[i].GetWidth())/2))
-			if ((p2.getRow() > (rooms[i].GetCenterRow() - rooms[i].GetHeight()) / 2) && (p2.getRow() < (rooms[i].GetCenterRow() + rooms[i].GetHeight()) / 2)
-				&&(p2.getCol() > (rooms[i].GetCenterCol() - rooms[i].GetWidth()) / 2) && (p2.getCol() < (rooms[i].GetCenterCol() + rooms[i].GetWidth()) / 2))
-			{
-				return true;
-			}
-	}
-	return false;
-}
-
 double calcAngleBetweenCells(int centerRow1, int centerCol1, int centerRow2, int centerCol2)		/////
 {
 	double angle;
 	int lengthX = centerCol2 - centerCol1;
 	int lengthY = centerRow2 - centerRow1;
-	angle = atan(lengthY / lengthX);
+	if (lengthX == 0 && lengthY == 0)
+		angle = 0;
+	else if (lengthX == 0 || lengthY==0)
+		angle = 3.14 / 2;
+	else
+		angle = atan(lengthY / lengthX);
 	return angle;
 }
 
@@ -292,8 +282,8 @@ bool haveEyeContact(Player attacker, Player attacked)		/////																	///
 	int row = attacker.getRow(), col = attacker.getCol();
 	while (row!= attacked.getRow() && col != attacked.getCol())
 	{
-		x = x + cos(angle);
-		y = y + sin(angle);
+		x = x + 0.001*cos(angle);
+		y = y + 0.001*sin(angle);
 		col = (int)(MSZ * (x + 1) / 2);
 		row = (int)(MSZ * (y + 1) / 2);
 		if (maze[row][col] == WALL || maze[row][col] == AMMO_STORE || maze[row][col] == MEDICINE_STORE)  // toDO - add same team player
@@ -304,11 +294,18 @@ bool haveEyeContact(Player attacker, Player attacked)		/////																	///
 
 bool canAttack(Player attacker, Player attacked)	/////
 {
-	return (playersInSameRoom(attacker, attacked) && haveEyeContact(attacker, attacked) && (attacker.getHealthPoints())>HEALTH_MIN_LINE);
+	double dist = distanceOfPlayers(attacker, enemy);
+	if (dist <= MAX_RANGE_ATTACK && dist >= MIN_RANGE_ATTACK)
+	{
+		if (haveEyeContact(attacker, enemy, angle))
+			return true;
+	}
+	return false;
 }
 
 void DoAction(int runIndex)		/////
 {
+	double angle;
 	int teamNum = getTeamNum(runIndex);
 	int targetTeam= getTeamTarget(runIndex);
 	
@@ -318,20 +315,6 @@ void DoAction(int runIndex)		/////
 		while (runPlayer)
 		{
 		AStarIteration(runIndex,teamNum,targetTeam);
-		}
-		double angle = calcAngleBetweenCells(allPlayers[runIndex].getRow(), allPlayers[runIndex].getCol(), allPlayers[enemyID].getRow(), allPlayers[enemyID].getCol());
-		if (canAttack(allPlayers[runIndex], allPlayers[enemyID]))
-		{
-			allPlayers[runIndex].attack(allPlayers, enemyID, angle);
-			if (allPlayers[enemyID].getHealthPoints() == 0)									// if the attacked player is dead
-			{
-				maze[allPlayers[enemyID].getRow()][allPlayers[enemyID].getCol()] = SPACE;		// erase player image
-				for (int i = enemyID; i < (2*NUM_TEAM_PLAYERS - 1); i++)						// delete from array
-				{
-					allPlayers[i] = allPlayers[i + 1];
-				}
-				numOfPlayers--;
-			}
 		}
 	}
 }
